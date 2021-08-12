@@ -73,5 +73,10 @@ namespace JackSharp.ApiWrapper
 		[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 		public delegate void JackThreadCallback (IntPtr arg);
 
+		[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+		public delegate void JackErrorCallback (string err);
+
+		[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+		public delegate void JackInfoCallback (string info);
 	}
 }
