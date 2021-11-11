@@ -30,7 +30,7 @@ namespace JackSharp.ApiWrapper
 	static class ClientApi
 	{
 		[DllImport (Constants.JACK_LIB_NAME, CallingConvention = CallingConvention.Cdecl, EntryPoint = "jack_client_open")]
-		public static extern unsafe UnsafeStructs.jack_client_t* Open (string clientName, JackOptions options, params IntPtr[] status);
+		public static extern unsafe UnsafeStructs.jack_client_t* Open (string clientName, JackOptions options, IntPtr[] status, string serverName);
 
 		[DllImport (Constants.JACK_LIB_NAME, CallingConvention = CallingConvention.Cdecl, EntryPoint = "jack_client_close")]
 		public static extern unsafe int Close (UnsafeStructs.jack_client_t* client);

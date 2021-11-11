@@ -55,7 +55,7 @@ namespace JackSharp
 		/// <param name="midiInPorts">Number of MIDI in ports.</param>
 		/// <param name="midiOutPorts">Number of MIDI out ports.</param>
 		/// <param name="autoconnect">If set to <c>true</c>, autoconnect inlets and outlets to physical ports.</param>
-		public Processor (string name, int audioInPorts = 0, int audioOutPorts = 0, int midiInPorts = 0, int midiOutPorts = 0, bool autoconnect = false) : base (name)
+		public Processor (string name, int audioInPorts = 0, int audioOutPorts = 0, int midiInPorts = 0, int midiOutPorts = 0, bool autoconnect = false, string serverName = null) : base (name, serverName)
 		{
 			_autoconnect = autoconnect;
 			SetUpPorts (audioInPorts, audioOutPorts, midiInPorts, midiOutPorts);

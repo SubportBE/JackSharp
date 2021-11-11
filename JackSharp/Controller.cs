@@ -61,7 +61,8 @@ namespace JackSharp
 		/// Initializes a new instance of the <see cref="JackSharp.Controller"/> class.
 		/// </summary>
 		/// <param name="name">Name.</param>
-		public Controller (string name) : base (name)
+		/// <param name="serverName">Name of the server instance to connect to. Optional, <see langword="null"> if none.</param>
+		public Controller (string name, string serverName = null) : base (name, serverName)
 		{
 			SetUpCallbacks ();
 		}

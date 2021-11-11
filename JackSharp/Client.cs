@@ -44,10 +44,12 @@ namespace JackSharp
 		public bool IsConnectedToJack { get; private set; }
 
 		protected readonly string Name;
+		protected readonly string ServerName;
 
-		protected Client (string name)
+		protected Client (string name, string serverName)
 		{
-			Name = name;
+			Name = name ?? throw new ArgumentNullException(nameof(name));
+			ServerName = serverName;
 			SetUpBaseCallbacks ();
 		}
 
@@ -204,8 +206,19 @@ namespace JackSharp
 			if (JackClient != null) {
 				return ClientStatus.AlreadyThere;
 			}
-			JackOptions startOptions = startServer ? JackOptions.JackNullOption : JackOptions.JackNoStartServer;
-			JackClient = ClientApi.Open (Name, startOptions, IntPtr.Zero);
+			
+			JackOptions startOptions;
+			if (ServerName == null)
+			{
+				startOptions = startServer ? JackOptions.JackNullOption : JackOptions.JackNoStartServer;	
+			}			
+			else
+			{
+				startOptions = JackOptions.JackServerName;
+			}
+
+			
+			JackClient = ClientApi.Open (Name, startOptions, new [] { IntPtr.Zero }, ServerName);
 			if (JackClient == null) {
 				return ClientStatus.Failure;
 			}
