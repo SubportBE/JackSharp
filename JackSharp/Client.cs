@@ -152,18 +152,14 @@ namespace JackSharp
 		int OnSampleRateChange (uint nframes, IntPtr arg)
 		{
 			SampleRate = (int)nframes;
-			if (SampleRateChanged != null) {
-				SampleRateChanged (this, new SampleRateEventArgs (SampleRate));
-			}
+				SampleRateChanged?.Invoke (this, new SampleRateEventArgs (SampleRate));
 			return 0;
 		}
 
 		int OnBufferSizeChange (uint nframes, IntPtr arg)
 		{
 			BufferSize = (int)nframes;
-			if (BufferSizeChanged != null) {
-				BufferSizeChanged (this, new BufferSizeEventArgs (BufferSize));
-			}
+				BufferSizeChanged?.Invoke (this, new BufferSizeEventArgs (BufferSize));
 			return 0;
 		}
 
@@ -171,16 +167,14 @@ namespace JackSharp
 		{
 			IsConnectedToJack = false;
 			JackClient = null;
-			if (Shutdown != null) {
 				Shutdown (this, new EventArgs ());
-			}
 		}
 
 		unsafe int OnJackXrun (IntPtr args)
 		{
 			float xrunDelay = Invoke.GetXrunDelayedUsecs (JackClient);
-			if (xrunDelay > 0 && Xrun != null) { 
-				Xrun (this, new XrunEventArgs (xrunDelay));
+			if (xrunDelay > 0) { 
+				Xrun?.Invoke (this, new XrunEventArgs (xrunDelay));
 			}
 			return 0;
 		}
@@ -188,14 +182,14 @@ namespace JackSharp
 		unsafe void OnJackError (string err)
 		{
 			if (err != null) {
-				Error (this, new ErrorEventArgs (err));
+				Error?.Invoke (this, new ErrorEventArgs (err));
 			}
 		}
 
 		unsafe void OnJackInfo (string info)
 		{
 			if (info != null) {
-				Info (this, new InfoEventArgs (info));
+				Info?.Invoke (this, new InfoEventArgs (info));
 			}
 		}
 
