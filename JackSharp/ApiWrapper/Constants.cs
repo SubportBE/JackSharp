@@ -26,6 +26,8 @@ namespace JackSharp.ApiWrapper
 	{
 		#if Windows
 			public const string JACK_LIB_NAME = "libjack.dll";
+		#elif Windows64
+			public const string JACK_LIB_NAME = "libjack64.dll";	
 		#elif Linux
 			public const string JACK_LIB_NAME = "libjack.so.0";
 		#elif OSX
