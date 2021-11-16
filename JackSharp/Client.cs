@@ -167,7 +167,7 @@ namespace JackSharp
 		{
 			IsConnectedToJack = false;
 			JackClient = null;
-				Shutdown (this, new EventArgs ());
+				Shutdown?.Invoke (this, new EventArgs ());
 		}
 
 		unsafe int OnJackXrun (IntPtr args)
