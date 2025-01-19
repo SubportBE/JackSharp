@@ -46,25 +46,25 @@ namespace JackSharp
 		static Processor()
 		{
 			NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
-        }
+		}
 
-        private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
-        {
-            if (libraryName == "libjack")
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    return NativeLibrary.Load("libjack64", assembly, searchPath);
-                }
-            }
+		private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+		{
+			if (libraryName == "libjack")
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					return NativeLibrary.Load("libjack64", assembly, searchPath);
+				}
+			}
 
-            // Otherwise, fallback to default import resolver.
-            return IntPtr.Zero;
-        }
-        /// <summary>
-        /// Delegates to be called on the process callback of Jack. Multiple Actions can be added.
-        /// </summary>
-        public Action<ProcessBuffer> ProcessFunc { get; set; }
+			// Otherwise, fallback to default import resolver.
+			return IntPtr.Zero;
+		}
+		/// <summary>
+		/// Delegates to be called on the process callback of Jack. Multiple Actions can be added.
+		/// </summary>
+		public Action<ProcessBuffer> ProcessFunc { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="JackSharp.Processor"/> class.
@@ -75,20 +75,20 @@ namespace JackSharp
 		/// <param name="midiInPorts">Number of MIDI in ports.</param>
 		/// <param name="midiOutPorts">Number of MIDI out ports.</param>
 		/// <param name="autoconnect">If set to <c>true</c>, autoconnect inlets and outlets to physical ports.</param>
-		public Processor (string name, int audioInPorts = 0, int audioOutPorts = 0, int midiInPorts = 0, int midiOutPorts = 0, bool autoconnect = false) : base (name)
+		public Processor(string name, int audioInPorts = 0, int audioOutPorts = 0, int midiInPorts = 0, int midiOutPorts = 0, bool autoconnect = false) : base(name)
 		{
 			_autoconnect = autoconnect;
-			SetUpPorts (audioInPorts, audioOutPorts, midiInPorts, midiOutPorts);
-			SetUpCallbacks ();
+			SetUpPorts(audioInPorts, audioOutPorts, midiInPorts, midiOutPorts);
+			SetUpCallbacks();
 		}
 
 		/// <summary>
 		/// Releases unmanaged resources and performs other cleanup operations before the <see cref="JackSharp.Processor"/> is
 		/// reclaimed by garbage collection.
 		/// </summary>
-		~Processor ()
+		~Processor()
 		{
-			Dispose (false);
+			Dispose(false);
 		}
 
 		/// <summary>
@@ -98,13 +98,13 @@ namespace JackSharp
 		/// <see cref="Dispose"/> method leaves the <see cref="JackSharp.Processor"/> in an unusable state. After calling
 		/// <see cref="Dispose"/>, you must release all references to the <see cref="JackSharp.Processor"/> so the garbage
 		/// collector can reclaim the memory that the <see cref="JackSharp.Processor"/> was occupying.</remarks>
-		public new void Dispose ()
+		public new void Dispose()
 		{
-			Dispose (true);
-			GC.SuppressFinalize (this);
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
-		void SetUpPorts (int audioInPorts, int audioOutPorts, int midiInPorts, int midiOutPorts)
+		void SetUpPorts(int audioInPorts, int audioOutPorts, int midiInPorts, int midiOutPorts)
 		{
 			_audioInPorts = new AudioInPort[audioInPorts];
 			_audioOutPorts = new AudioOutPort[audioOutPorts];
@@ -112,7 +112,7 @@ namespace JackSharp
 			_midiOutPorts = new MidiOutPort[midiOutPorts];
 		}
 
-		void SetUpCallbacks ()
+		void SetUpCallbacks()
 		{
 			_processCallback = OnProcess;
 		}
@@ -158,57 +158,64 @@ namespace JackSharp
 		/// Activates the client and connects to Jack.
 		/// </summary>
 		/// <param name="startServer">If [true], the client will start Jack if it is not running.</param>
-		public new bool Start (bool startServer = false)
+		public new bool Start(bool startServer = false)
 		{
-			if (!base.Start (startServer)) {
+			if (!base.Start(startServer))
+			{
 				return false;
 			}
-			if (_autoconnect) {
-				AutoConnectPorts ();
+			if (_autoconnect)
+			{
+				AutoConnectPorts();
 			}
 			return true;
 		}
 
-		internal override bool Open (bool startServer)
+		internal override bool Open(bool startServer)
 		{
-			ClientStatus status = BaseOpen (startServer);
-			switch (status) {
-			case ClientStatus.AlreadyThere:
-				return true;
-			case ClientStatus.Failure:
-				return false;
-			case ClientStatus.New:
-				CreatePorts ();
-				WireUpCallbacks ();
-				WireUpBaseCallbacks ();
-				return true;
+			ClientStatus status = BaseOpen(startServer);
+			switch (status)
+			{
+				case ClientStatus.AlreadyThere:
+					return true;
+				case ClientStatus.Failure:
+					return false;
+				case ClientStatus.New:
+					CreatePorts();
+					WireUpCallbacks();
+					WireUpBaseCallbacks();
+					return true;
 			}
 			return false;
 		}
 
-		unsafe void WireUpCallbacks ()
+		unsafe void WireUpCallbacks()
 		{
-			ClientCallbackApi.SetProcessCallback (JackClient, _processCallback, IntPtr.Zero);
+			ClientCallbackApi.SetProcessCallback(JackClient, _processCallback, IntPtr.Zero);
 		}
 
-		int OnProcess (uint nframes, IntPtr arg)
+		int OnProcess(uint nframes, IntPtr arg)
 		{
-			AudioBuffer[] audioInBuffers = _audioInPorts.Select (p => p.GetAudioBuffer (nframes)).ToArray ();
-			AudioBuffer[] audioOutBuffers = _audioOutPorts.Select (p => p.GetAudioBuffer (nframes)).ToArray ();
-			MidiEventCollection<MidiInEvent>[] midiInEvents = _midiInPorts.Select (p => p.GetMidiBuffer (nframes)).ToArray ();
-			MidiEventCollection<MidiOutEvent>[] midiOutEvents = _midiOutPorts.Select (p => p.GetMidiBuffer ()).ToArray ();
+			AudioBuffer[] audioInBuffers = _audioInPorts.Select(p => p.GetAudioBuffer(nframes)).ToArray();
+			AudioBuffer[] audioOutBuffers = _audioOutPorts.Select(p => p.GetAudioBuffer(nframes)).ToArray();
+			MidiEventCollection<MidiInEvent>[] midiInEvents = _midiInPorts.Select(p => p.GetMidiBuffer(nframes)).ToArray();
+			MidiEventCollection<MidiOutEvent>[] midiOutEvents = _midiOutPorts.Select(p => p.GetMidiBuffer()).ToArray();
 
-			if (ProcessFunc != null) {
-				ProcessFunc (new ProcessBuffer (nframes, audioInBuffers, audioOutBuffers, midiInEvents, midiOutEvents));
+			if (ProcessFunc != null)
+			{
+				ProcessFunc(new ProcessBuffer(nframes, audioInBuffers, audioOutBuffers, midiInEvents, midiOutEvents));
 			}
-			foreach (var audioInBuffer in audioInBuffers) {
-				audioInBuffer.CopyToPointer ();
+			foreach (var audioInBuffer in audioInBuffers)
+			{
+				audioInBuffer.CopyToPointer();
 			}
-			foreach (var audioOutBuffer in audioOutBuffers) {
-				audioOutBuffer.CopyToPointer ();
+			foreach (var audioOutBuffer in audioOutBuffers)
+			{
+				audioOutBuffer.CopyToPointer();
 			}
-			foreach (MidiEventCollection<MidiOutEvent> midiEvents in midiOutEvents) {
-				midiEvents.WriteToJackMidi (nframes);
+			foreach (MidiEventCollection<MidiOutEvent> midiEvents in midiOutEvents)
+			{
+				midiEvents.WriteToJackMidi(nframes);
 			}
 
 			return 0;
@@ -217,77 +224,90 @@ namespace JackSharp
 		/// <summary>
 		/// Stop this instance and disconnects from Jack.
 		/// </summary>
-		public new bool Stop ()
+		public new bool Stop()
 		{
-			DisposePorts ();
-			return base.Stop ();
+			DisposePorts();
+			return base.Stop();
 		}
 
-		void DisposePorts ()
+		void DisposePorts()
 		{
-			for (int i = _midiOutPorts.Length - 1; i >= 0; i--) {
-				if (_midiOutPorts [i] != null) {
-					_midiOutPorts [i].Dispose ();
+			for (int i = _midiOutPorts.Length - 1; i >= 0; i--)
+			{
+				if (_midiOutPorts[i] != null)
+				{
+					_midiOutPorts[i].Dispose();
 				}
 			}
-			for (int i = _midiInPorts.Length - 1; i >= 0; i--) {
-				if (_midiInPorts [i] != null) {
-					_midiInPorts [i].Dispose ();
+			for (int i = _midiInPorts.Length - 1; i >= 0; i--)
+			{
+				if (_midiInPorts[i] != null)
+				{
+					_midiInPorts[i].Dispose();
 				}
 			}
-			for (int i = _audioOutPorts.Length - 1; i >= 0; i--) {
-				if (_audioOutPorts [i] != null) {
-					_audioOutPorts [i].Dispose ();
+			for (int i = _audioOutPorts.Length - 1; i >= 0; i--)
+			{
+				if (_audioOutPorts[i] != null)
+				{
+					_audioOutPorts[i].Dispose();
 				}
 			}
-			for (int i = _audioInPorts.Length - 1; i >= 0; i--) {
-				if (_audioInPorts [i] != null) {
-					_audioInPorts [i].Dispose ();
+			for (int i = _audioInPorts.Length - 1; i >= 0; i--)
+			{
+				if (_audioInPorts[i] != null)
+				{
+					_audioInPorts[i].Dispose();
 				}
-			}
-		}
-
-		unsafe void CreatePorts ()
-		{
-			for (int i = 0; i < _audioInPorts.Length; i++) {
-				_audioInPorts [i] = new AudioInPort (JackClient, i, PortNameFormat);
-			}
-			for (int i = 0; i < _audioOutPorts.Length; i++) {
-				_audioOutPorts [i] = new AudioOutPort (JackClient, i, PortNameFormat);
-			}
-			for (int i = 0; i < _midiInPorts.Length; i++) {
-				_midiInPorts [i] = new MidiInPort (JackClient, i, PortNameFormat);
-			}
-			for (int i = 0; i < _midiOutPorts.Length; i++) {
-				_midiOutPorts [i] = new MidiOutPort (JackClient, i, PortNameFormat);
 			}
 		}
 
-		unsafe void AutoConnectPorts ()
+		unsafe void CreatePorts()
 		{
-			List<PortReference> ports = GetAllJackPorts ().Where (p => p.IsPhysicalPort).ToList ();
-
-			List<string> outlets = ports.Where (p => p.Direction == Direction.Out && p.PortType == PortType.Audio).Select (p => p.FullName).ToList ();
-			List<string> inlets = _audioInPorts.Select (p => PortApi.GetName (p._port).PtrToString ()).ToList ();
-			ConnectPorts (outlets, inlets);
-
-			outlets = _audioOutPorts.Select (p => PortApi.GetName (p._port).PtrToString ()).ToList ();
-			inlets = ports.Where (p => p.Direction == Direction.In && p.PortType == PortType.Audio).Select (p => p.FullName).ToList ();
-			ConnectPorts (outlets, inlets);
-
-			outlets = ports.Where (p => p.Direction == Direction.Out && p.PortType == PortType.Midi).Select (p => p.FullName).ToList ();
-			inlets = _midiInPorts.Select (p => PortApi.GetName (p._port).PtrToString ()).ToList ();
-			ConnectPorts (outlets, inlets);
-
-			outlets = _midiOutPorts.Select (p => PortApi.GetName (p._port).PtrToString ()).ToList ();
-			inlets = ports.Where (p => p.Direction == Direction.In && p.PortType == PortType.Midi).Select (p => p.FullName).ToList ();
-			ConnectPorts (outlets, inlets);
+			for (int i = 0; i < _audioInPorts.Length; i++)
+			{
+				_audioInPorts[i] = new AudioInPort(JackClient, i, PortNameFormat);
+			}
+			for (int i = 0; i < _audioOutPorts.Length; i++)
+			{
+				_audioOutPorts[i] = new AudioOutPort(JackClient, i, PortNameFormat);
+			}
+			for (int i = 0; i < _midiInPorts.Length; i++)
+			{
+				_midiInPorts[i] = new MidiInPort(JackClient, i, PortNameFormat);
+			}
+			for (int i = 0; i < _midiOutPorts.Length; i++)
+			{
+				_midiOutPorts[i] = new MidiOutPort(JackClient, i, PortNameFormat);
+			}
 		}
 
-		unsafe void ConnectPorts (List<string> outlets, List<string> inlets)
+		unsafe void AutoConnectPorts()
 		{
-			for (int i = 0; i < Math.Min (outlets.Count, inlets.Count); i++) {
-				PortApi.Connect (JackClient, outlets [i], inlets [i]);
+			List<PortReference> ports = GetAllJackPorts().Where(p => p.IsPhysicalPort).ToList();
+
+			List<string> outlets = ports.Where(p => p.Direction == Direction.Out && p.PortType == PortType.Audio).Select(p => p.FullName).ToList();
+			List<string> inlets = _audioInPorts.Select(p => PortApi.GetName(p._port).PtrToString()).ToList();
+			ConnectPorts(outlets, inlets);
+
+			outlets = _audioOutPorts.Select(p => PortApi.GetName(p._port).PtrToString()).ToList();
+			inlets = ports.Where(p => p.Direction == Direction.In && p.PortType == PortType.Audio).Select(p => p.FullName).ToList();
+			ConnectPorts(outlets, inlets);
+
+			outlets = ports.Where(p => p.Direction == Direction.Out && p.PortType == PortType.Midi).Select(p => p.FullName).ToList();
+			inlets = _midiInPorts.Select(p => PortApi.GetName(p._port).PtrToString()).ToList();
+			ConnectPorts(outlets, inlets);
+
+			outlets = _midiOutPorts.Select(p => PortApi.GetName(p._port).PtrToString()).ToList();
+			inlets = ports.Where(p => p.Direction == Direction.In && p.PortType == PortType.Midi).Select(p => p.FullName).ToList();
+			ConnectPorts(outlets, inlets);
+		}
+
+		unsafe void ConnectPorts(List<string> outlets, List<string> inlets)
+		{
+			for (int i = 0; i < Math.Min(outlets.Count, inlets.Count); i++)
+			{
+				PortApi.Connect(JackClient, outlets[i], inlets[i]);
 			}
 		}
 	}
