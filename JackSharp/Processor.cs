@@ -221,6 +221,27 @@ namespace JackSharp
 			return 0;
 		}
 
+		public unsafe void ConnectOutPorts(IEnumerable<(int output, int input)> portConnections)
+		{
+			if (portConnections is null)
+			{
+				throw new ArgumentNullException(nameof(portConnections));
+			}
+
+			if (!this.IsConnectedToJack)
+			{
+				throw new InvalidOperationException("Can't connect output ports unless started");
+			}
+
+			var ports = GetAllJackPorts().Where(p => p.IsPhysicalPort).ToArray();
+			var outlets = _audioOutPorts.Select(p => PortApi.GetName(p._port).PtrToString()).ToArray();
+			var inlets = ports.Where(p => p.Direction == Direction.In && p.PortType == PortType.Audio).Select(p => p.FullName).ToArray();
+			foreach (var (output, input) in portConnections)
+			{
+				PortApi.Connect(JackClient, outlets[output], inlets[input]);
+			}
+		}
+
 		/// <summary>
 		/// Stop this instance and disconnects from Jack.
 		/// </summary>
