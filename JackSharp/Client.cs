@@ -33,7 +33,7 @@ namespace JackSharp
 	/// <summary>
 	/// Base class for JackClients.
 	/// </summary>
-	public abstract class Client: IDisposable
+	public abstract class Client : IDisposable, IClient
 	{
 		internal unsafe UnsafeStructs.jack_client_t* JackClient;
 
@@ -45,21 +45,21 @@ namespace JackSharp
 
 		protected readonly string Name;
 
-		protected Client (string name)
+		protected Client(string name)
 		{
 			Name = name;
-			SetUpBaseCallbacks ();
+			SetUpBaseCallbacks();
 		}
 
-		~Client ()
+		~Client()
 		{
-			Dispose (false);
+			Dispose(false);
 		}
 
-		public void Dispose ()
+		public void Dispose()
 		{
-			Dispose (true);
-			GC.SuppressFinalize (this);
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -118,14 +118,15 @@ namespace JackSharp
 		Callbacks.JackInfoCallback _jackInfoFunction;
 		public event EventHandler<NotAvailableEventArgs> NotAvailable;
 
-		protected void InvokeNotAvaible (string eventName)
+		protected void InvokeNotAvaible(string eventName)
 		{
-			if (NotAvailable != null) {
-				NotAvailable (this, new NotAvailableEventArgs ("Port Rename"));
+			if (NotAvailable != null)
+			{
+				NotAvailable(this, new NotAvailableEventArgs("Port Rename"));
 			}
 		}
 
-		void SetUpBaseCallbacks ()
+		void SetUpBaseCallbacks()
 		{
 			_bufferSizeCallback = OnBufferSizeChange;
 			_sampleRateCallback = OnSampleRateChange;
@@ -135,122 +136,135 @@ namespace JackSharp
 			_jackXrunCallback = OnJackXrun;
 		}
 
-		protected unsafe void WireUpBaseCallbacks ()
+		protected unsafe void WireUpBaseCallbacks()
 		{
-			ClientCallbackApi.SetBufferSizeCallback (JackClient, _bufferSizeCallback, IntPtr.Zero);
-			ClientCallbackApi.SetSampleRateCallback (JackClient, _sampleRateCallback, IntPtr.Zero);
-			ClientCallbackApi.SetShutdownCallback (JackClient, _shutdownCallback, IntPtr.Zero);
+			ClientCallbackApi.SetBufferSizeCallback(JackClient, _bufferSizeCallback, IntPtr.Zero);
+			ClientCallbackApi.SetSampleRateCallback(JackClient, _sampleRateCallback, IntPtr.Zero);
+			ClientCallbackApi.SetShutdownCallback(JackClient, _shutdownCallback, IntPtr.Zero);
 			//ClientCallbackApi.SetErrorFunction (JackClient, _jackErrorFunction, IntPtr.Zero);
 			//ClientCallbackApi.SetInfoFunction (JackClient, _jackInfoFunction, IntPtr.Zero);
-			ClientCallbackApi.SetXrunCallback (JackClient, _jackXrunCallback, IntPtr.Zero);
+			ClientCallbackApi.SetXrunCallback(JackClient, _jackXrunCallback, IntPtr.Zero);
 		}
 
 
-		int OnSampleRateChange (uint nframes, IntPtr arg)
+		int OnSampleRateChange(uint nframes, IntPtr arg)
 		{
 			SampleRate = (int)nframes;
-			if (SampleRateChanged != null) {
-				SampleRateChanged (this, new SampleRateEventArgs (SampleRate));
+			if (SampleRateChanged != null)
+			{
+				SampleRateChanged(this, new SampleRateEventArgs(SampleRate));
 			}
 			return 0;
 		}
 
-		int OnBufferSizeChange (uint nframes, IntPtr arg)
+		int OnBufferSizeChange(uint nframes, IntPtr arg)
 		{
 			BufferSize = (int)nframes;
-			if (BufferSizeChanged != null) {
-				BufferSizeChanged (this, new BufferSizeEventArgs (BufferSize));
+			if (BufferSizeChanged != null)
+			{
+				BufferSizeChanged(this, new BufferSizeEventArgs(BufferSize));
 			}
 			return 0;
 		}
 
-		unsafe void OnShutdown (IntPtr args)
+		unsafe void OnShutdown(IntPtr args)
 		{
 			IsConnectedToJack = false;
 			JackClient = null;
-			if (Shutdown != null) {
-				Shutdown (this, new EventArgs ());
+			if (Shutdown != null)
+			{
+				Shutdown(this, new EventArgs());
 			}
 		}
 
-		unsafe int OnJackXrun (IntPtr args)
+		unsafe int OnJackXrun(IntPtr args)
 		{
-			float xrunDelay = Invoke.GetXrunDelayedUsecs (JackClient);
-			if (xrunDelay > 0 && Xrun != null) { 
-				Xrun (this, new XrunEventArgs (xrunDelay));
+			float xrunDelay = Invoke.GetXrunDelayedUsecs(JackClient);
+			if (xrunDelay > 0 && Xrun != null)
+			{
+				Xrun(this, new XrunEventArgs(xrunDelay));
 			}
 			return 0;
 		}
 
-		unsafe void OnJackError (string err)
+		unsafe void OnJackError(string err)
 		{
-			if (err != null) {
-				Error (this, new ErrorEventArgs (err));
+			if (err != null)
+			{
+				Error(this, new ErrorEventArgs(err));
 			}
 		}
 
-		unsafe void OnJackInfo (string info)
+		unsafe void OnJackInfo(string info)
 		{
-			if (info != null) {
-				Info (this, new InfoEventArgs (info));
+			if (info != null)
+			{
+				Info(this, new InfoEventArgs(info));
 			}
 		}
 
-		internal abstract bool Open (bool startServer);
+		internal abstract bool Open(bool startServer);
 
-		protected unsafe ClientStatus BaseOpen (bool startServer)
+		protected unsafe ClientStatus BaseOpen(bool startServer)
 		{
-			if (JackClient != null) {
+			if (JackClient != null)
+			{
 				return ClientStatus.AlreadyThere;
 			}
 			JackOptions startOptions = startServer ? JackOptions.JackNullOption : JackOptions.JackNoStartServer;
-			JackClient = ClientApi.Open (Name, startOptions, IntPtr.Zero);
-			if (JackClient == null) {
+			JackClient = ClientApi.Open(Name, startOptions, IntPtr.Zero);
+			if (JackClient == null)
+			{
 				return ClientStatus.Failure;
 			}
 			return ClientStatus.New;
 		}
 
-		protected virtual unsafe bool Start (bool startServer)
+		protected virtual unsafe bool Start(bool startServer)
 		{
-			if (IsConnectedToJack) {
+			if (IsConnectedToJack)
+			{
 				return false;
 			}
-			if (!Open (startServer)) {
+			if (!Open(startServer))
+			{
 				return false;
 			}
-			int status = ClientApi.Activate (JackClient);
-			if (status != 0) {
+			int status = ClientApi.Activate(JackClient);
+			if (status != 0)
+			{
 				return false;
 			}
-			SampleRate = (int)Invoke.GetSampleRate (JackClient);
-			BufferSize = (int)Invoke.GetBufferSize (JackClient);
+			SampleRate = (int)Invoke.GetSampleRate(JackClient);
+			BufferSize = (int)Invoke.GetBufferSize(JackClient);
 			IsConnectedToJack = true;
 			return true;
 		}
 
-		protected virtual unsafe bool Stop ()
+		protected virtual unsafe bool Stop()
 		{
-			bool status = ClientApi.Deactivate (JackClient) == 0;
-			if (status) {
+			bool status = ClientApi.Deactivate(JackClient) == 0;
+			if (status)
+			{
 				IsConnectedToJack = false;
-				Close ();
+				Close();
 			}
 			return status;
 		}
 
-		protected unsafe void Close ()
+		protected unsafe void Close()
 		{
-			int status = ClientApi.Close (JackClient);
-			if (status == 0) {
+			int status = ClientApi.Close(JackClient);
+			if (status == 0)
+			{
 				IsConnectedToJack = false;
 				JackClient = null;
 			}
 		}
 
-		protected void Dispose (bool isDisposing)
+		protected void Dispose(bool isDisposing)
 		{
-			Stop ();
+			Stop();
 		}
 
 		protected enum ClientStatus
@@ -260,27 +274,28 @@ namespace JackSharp
 			Failure
 		}
 
-		protected unsafe List<PortReference> GetAllJackPorts ()
+		protected unsafe List<PortReference> GetAllJackPorts()
 		{
-			IntPtr initialPorts = PortApi.GetPorts (JackClient, null, null, 0);
-			List<PortReference> ports = PortListFromPointer (initialPorts);
-			Invoke.Free (initialPorts);
+			IntPtr initialPorts = PortApi.GetPorts(JackClient, null, null, 0);
+			List<PortReference> ports = PortListFromPointer(initialPorts);
+			Invoke.Free(initialPorts);
 			return ports;
 		}
 
-		protected List<PortReference> PortListFromPointer (IntPtr initialPorts)
+		protected List<PortReference> PortListFromPointer(IntPtr initialPorts)
 		{
-			List<PortReference> ports = initialPorts.PtrToStringArray ().Select (MapPort).ToList ();
+			List<PortReference> ports = initialPorts.PtrToStringArray().Select(MapPort).ToList();
 			return ports;
 		}
 
-		unsafe PortReference MapPort (string portName)
+		unsafe PortReference MapPort(string portName)
 		{
-			UnsafeStructs.jack_port_t* portPointer = PortApi.GetPortByName (JackClient, portName);
-			if (portPointer == null) {
+			UnsafeStructs.jack_port_t* portPointer = PortApi.GetPortByName(JackClient, portName);
+			if (portPointer == null)
+			{
 				return null;
 			}
-			return new PortReference (portPointer);
+			return new PortReference(portPointer);
 		}
 	}
 }

@@ -35,7 +35,7 @@ namespace JackSharp
 	/// <summary>
 	/// Processor.
 	/// </summary>
-	public sealed class Processor : Client
+	public sealed class Processor : Client, IProcessor
 	{
 		AudioInPort[] _audioInPorts;
 		AudioOutPort[] _audioOutPorts;
