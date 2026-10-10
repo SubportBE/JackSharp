@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Core" Version="3.1.0" />
     <ProjectReference Include="../JackSharp/JackSharp.csproj" />
   </ItemGroup>
 </Project>

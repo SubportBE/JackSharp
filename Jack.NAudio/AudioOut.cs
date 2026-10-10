@@ -108,7 +108,7 @@ namespace Jack.NAudio
 			int bytesCount = floatsCount * sizeof(float);
 			byte[] fromWave = new byte[bytesCount];
 
-			_waveStream.Read (fromWave, 0, bytesCount);
+			_waveStream.Read (fromWave.AsSpan ());
 
 			float[] interlacedSamples = new float[floatsCount];
 			Buffer.BlockCopy (fromWave, 0, interlacedSamples, 0, bytesCount);

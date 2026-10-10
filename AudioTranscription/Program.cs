@@ -32,12 +32,12 @@ Console.ReadKey();
 
 System.Console.WriteLine("Playback");
 
-var wavInFile = new AudioFileReader("example.wav");
+using var wavInFile = new WaveFileReader("example.wav");
 System.Console.WriteLine($"Sample Rate: {wavInFile.WaveFormat.SampleRate}");
 System.Console.WriteLine($"Channels: {wavInFile.WaveFormat.Channels}");
 System.Console.WriteLine($"Bits per Sample: {wavInFile.WaveFormat.BitsPerSample}");
 System.Console.WriteLine($"Encoding: {wavInFile.WaveFormat.Encoding}");
-audioOut.Init(wavInFile);
+audioOut.Init(wavInFile.ToSampleProvider().ToWaveProvider()); // AudioOut expects IEEE float
 audioOut.Play();
 System.Console.WriteLine("Press any key to stop playback");
 Console.ReadKey();
